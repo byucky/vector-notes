@@ -1,0 +1,14 @@
+<h2 mat-dialog-title>Settings</h2>
+<mat-dialog-content>
+  <form>
+    <mat-form-field appearance="fill" style="width: 100%;">
+      <mat-label>OpenAI API Key</mat-label>
+      <input matInput [formControl]="openaiKeyControl" placeholder="sk-..." />
+      <mat-hint>Your OpenAI API key will be stored locally</mat-hint>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="closeDialog()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="saveSettings()">Save</button>
+</mat-dialog-actions>
