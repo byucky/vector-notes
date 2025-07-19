@@ -1,11 +1,19 @@
 <div class="note-editor-container">
-    <input type="text" class="note-editor-title" placeholder="Untitled"
-        [value]="note.title"
-        (input)="onTitleChange($event)">
-    <textarea 
-        #contentTextarea
-        class="note-editor-area"
-        [value]="note.content"
-        (input)="onContentChange($event)"
-        placeholder="Enter your notes here..."></textarea>
+    <ng-container *ngIf="note; else noNoteSelected">
+        <input type="text" class="note-editor-title" placeholder="Untitled"
+            [value]="note.title || ''"
+            (input)="onTitleChange($event)">
+        <textarea 
+            #contentTextarea
+            class="note-editor-area"
+            [value]="note.content || ''"
+            (input)="onContentChange($event)"
+            placeholder="Enter your notes here..."></textarea>
+    </ng-container>
+    
+    <ng-template #noNoteSelected>
+        <div class="no-note-selected">
+            <p>Select a note from the sidebar to start editing</p>
+        </div>
+    </ng-template>
 </div>
