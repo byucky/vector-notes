@@ -1,8 +1,30 @@
-<div>
+<div class="notes-navigator-container">
     <div class="notes-navigator-header">
         <h2>Notes</h2>
-        <button mat-icon-button><mat-icon>add</mat-icon></button>
+        <button mat-icon-button (click)="createNewNote()">
+            <mat-icon>add</mat-icon>
+        </button>
     </div>
     <div class="notes-navigator-body">
+        <mat-list>
+            <mat-list-item 
+                *ngFor="let note of notes" 
+                (click)="onNoteClick(note)"
+                [class.selected]="selectedNoteId === note.id"
+                class="note-item">
+                <div class="note-item-content">
+                    <div class="note-title">{{ getNoteTitle(note) }}</div>
+                    <div class="note-date">{{ getNoteDate(note) }}</div>
+                </div>
+            </mat-list-item>
+        </mat-list>
+        
+        <div *ngIf="loading" class="loading">
+            <p>Loading notes...</p>
+        </div>
+        
+        <div *ngIf="!loading && notes.length === 0" class="no-notes">
+            <p>No notes yet. Click the + button to create your first note!</p>
+        </div>
     </div>
 </div>

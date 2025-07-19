@@ -11,7 +11,6 @@ import { SettingsDialogComponent } from "../settings-dialog/settings-dialog.comp
     imports: [
         MatIconModule,
         MatButtonModule,
-        SettingsDialogComponent,
     ]
 })
 

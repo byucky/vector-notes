@@ -1,35 +1,37 @@
+export interface INote {
+    id: string;
+    title: string;
+    content: string;
+    created_at?: number;
+    updated_at?: number;
+}
 
 export class Note {
     id: string;
     title: string;
-    thoughts: string[];
+    content: string;
+    created_at?: number;
+    updated_at?: number;
 
     constructor(
         id: string = '',
         title: string = '',
-        thoughts: string[] = []
+        content: string = '',
+        created_at?: number,
+        updated_at?: number
     ) {
         this.id = id;
         this.title = title;
-        this.thoughts = thoughts;
+        this.content = content;
+        this.created_at = created_at;
+        this.updated_at = updated_at;
     }
 
-    addThought(thought: string, index: number = -1) {
-        if (index === -1) {
-            this.thoughts.push(thought);
-        } else {
-            this.thoughts.splice(index, 0, thought);
-        }
+    onTitleChange(title: string) {
+        this.title = title;
     }
 
-    removeThought(thought: string) {
-        this.thoughts = this.thoughts.filter(t => t !== thought);
-    }
-
-    updateThought(thought: string, newThought: string) {
-        const index = this.thoughts.indexOf(thought);
-        if (index !== -1) {
-            this.thoughts[index] = newThought;
-        }
+    onContentChange(content: string) {
+        this.content = content;
     }
 }

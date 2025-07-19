@@ -3,6 +3,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
+import { db } from '../src/utilities/db';
 
 // Define the path for storing settings
 const userDataPath = app.getPath('userData');
@@ -72,6 +73,80 @@ ipcMain.handle('save-api-key', (_, apiKey: string) => {
   settings.openaiApiKey = encrypt(apiKey);
   saveSettings(settings);
   return true;
+});
+
+// Database IPC handlers
+ipcMain.handle('get-notes', async () => {
+  try {
+    const notes = db.getNotes();
+    return notes;
+  } catch (error) {
+    console.error('Error getting notes:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-note', async (_, id: string) => {
+  try {
+    const note = db.getNote(id);
+    return note;
+  } catch (error) {
+    console.error('Error getting note:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('create-note', async (_, note: { id: string, title: string, content: string }) => {
+  try {
+    db.createNote(note);
+    return true;
+  } catch (error) {
+    console.error('Error creating note:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('update-note', async (_, note: { id: string, title: string, content: string }) => {
+  try {
+    db.updateNote(note);
+    return true;
+  } catch (error) {
+    console.error('Error updating note:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('delete-note', async (_, id: string) => {
+  try {
+    db.deleteNote(id);
+    return true;
+  } catch (error) {
+    console.error('Error deleting note:', error);
+    throw error;
+  }
+});
+
+// Initialize the database when the app is ready
+app.whenReady().then(() => {
+  // Initialize the database
+  try {
+    // Just accessing the db singleton will initialize it
+    console.log('Database initialized successfully');
+  } catch (error) {
+    console.error('Failed to initialize database:', error);
+  }
+  
+  // ... rest of your app initialization code ...
+});
+
+// Close the database when the app is about to quit
+app.on('will-quit', () => {
+  try {
+    db.close();
+    console.log('Database connection closed');
+  } catch (error) {
+    console.error('Error closing database connection:', error);
+  }
 });
 
 // Rest of your Electron main process code... 

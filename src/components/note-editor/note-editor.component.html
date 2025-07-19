@@ -1,14 +1,11 @@
 <div class="note-editor-container">
-    <input type="text" class="note-editor-title" placeholder="Untitled">
-    @for (thought of note.thoughts; track note.thoughts; let i = $index) {
-        <div>
-            <textarea 
-                #thoughtTextarea
-                class="note-editor-thought"
-                [value]="thought"
-                (input)="onThoughtChange($event, thought)"
-                (keydown)="onEnterKey($event, i)"
-                placeholder="Enter your thought here..."></textarea>
-        </div>
-    }
+    <input type="text" class="note-editor-title" placeholder="Untitled"
+        [value]="note.title"
+        (input)="onTitleChange($event)">
+    <textarea 
+        #contentTextarea
+        class="note-editor-area"
+        [value]="note.content"
+        (input)="onContentChange($event)"
+        placeholder="Enter your notes here..."></textarea>
 </div>

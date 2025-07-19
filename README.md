@@ -1,6 +1,8 @@
 # VectorNotes
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.3.
+This is a simple note-taking app built to leverage vector embeddings for semantic and contextual search. The idea is you use ideas to search across your notes. It's built with Angular and Electron for cross-platform desktop support.
+
+It is still work in progress. Eventually I'm planning on having a compiled app for macos and linux desktops.
 
 ## Development server
 
@@ -11,6 +13,45 @@ ng serve
 ```
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+
+## Launching the Electron App
+
+To launch the Electron desktop application, run:
+
+```bash
+npm run electron
+```
+
+This command will:
+1. Build your Angular application (`ng build`)
+2. Launch the Electron app using the built files
+
+### Alternative Development Workflow
+
+For development with hot reloading, you can:
+
+1. Start the Angular development server:
+   ```bash
+   npm start
+   ```
+
+2. In a separate terminal, launch Electron (you may need to modify the main process to point to the dev server URL).
+
+### Troubleshooting
+
+If you encounter issues:
+
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Check if the build succeeds**:
+   ```bash
+   npm run build
+   ```
+
+3. **Verify all dependencies are properly installed**, especially `better-sqlite3` and `sqlite-vss` for the database functionality.
 
 ## Code scaffolding
 

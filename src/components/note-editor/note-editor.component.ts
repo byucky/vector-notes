@@ -8,44 +8,17 @@ import { Note } from "./note";
 })
 
 export class NoteEditorComponent {
-    @ViewChildren('thoughtTextarea') thoughtTextareas: QueryList<ElementRef>;
-    focusIndex: number | null = null;
-    note: Note;
+    note: Note = new Note();
 
-    constructor(private renderer: Renderer2) {
-        this.note = new Note();
+    constructor(private renderer: Renderer2) {}
 
-        if (this.note.thoughts.length === 0) {
-            this.note.addThought('');
-        }
+    onTitleChange(event: Event) {
+        const input = event.target as HTMLInputElement;
+        this.note.onTitleChange(input.value);
     }
 
-    onThoughtChange(event: Event, thought: string) {
-        console.log('event', event);
+    onContentChange(event: Event) {
         const textarea = event.target as HTMLTextAreaElement;
-        this.note.updateThought(thought, textarea.value);
-    }
-
-    ngAfterViewChecked() {
-        if (this.focusIndex !== null) {
-            const textarea = this.thoughtTextareas.toArray()[this.focusIndex];
-            if (textarea) {
-                this.renderer.selectRootElement(textarea.nativeElement).focus();
-                this.focusIndex = null;
-            }
-        }
-    }
-
-    onEnterKey(event: KeyboardEvent, thoughtIndex: number) {
-        if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault();
-            
-            if (this.note.thoughts.length - 1 <= thoughtIndex) {
-                this.note.addThought('');
-            }
-            
-            // Set the focus index to the next thought
-            this.focusIndex = thoughtIndex + 1;
-        }
+        this.note.onContentChange(textarea.value);
     }
 }

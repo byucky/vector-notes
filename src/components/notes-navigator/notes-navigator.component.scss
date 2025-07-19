@@ -9,4 +9,60 @@
     display: flex;
     flex-direction: column;
     padding: 10px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.notes-navigator-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.note-item {
+    cursor: pointer;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    transition: background-color 0.2s ease;
+    
+    &:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+    }
+    
+    &.selected {
+        background-color: rgba(0, 0, 0, 0.08);
+    }
+}
+
+.note-item-content {
+    width: 100%;
+    padding: 8px 0;
+}
+
+.note-title {
+    font-weight: 500;
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.note-date {
+    font-size: 12px;
+    color: #666;
+}
+
+.no-notes {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    font-style: italic;
+}
+
+.loading {
+    text-align: center;
+    padding: 20px;
+    color: #666;
 }

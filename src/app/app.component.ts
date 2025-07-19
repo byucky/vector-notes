@@ -20,5 +20,5 @@ import { NotesNavigatorComponent } from '../components/notes-navigator/notes-nav
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
-  title = 'vector-notes';
+  title = 'Vectored Notes';
 }
