@@ -1,16 +1,26 @@
 import { Injectable } from '@angular/core';
-import { ipcRenderer } from 'electron';
 import { Note } from '../components/note-editor/note';
+
+// Define the type for the exposed electron API
+declare global {
+  interface Window {
+    electron: {
+      ipcRenderer: {
+        invoke(channel: string, ...args: any[]): Promise<any>;
+      };
+    };
+  }
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class NoteService {
-  private ipcRenderer: typeof ipcRenderer;
+  private ipcRenderer: Window['electron']['ipcRenderer'];
 
   constructor() {
-    // Access ipcRenderer from the global window object
-    this.ipcRenderer = (window as any).require('electron').ipcRenderer;
+    // Access ipcRenderer from the contextBridge
+    this.ipcRenderer = window.electron.ipcRenderer;
   }
 
   /**
@@ -59,6 +69,7 @@ export class NoteService {
    */
   async createNote(note: { id: string, title: string, content: string }): Promise<boolean> {
     try {
+      console.log('Creating note:', note);
       await this.ipcRenderer.invoke('create-note', note);
       return true;
     } catch (error) {

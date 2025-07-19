@@ -77,6 +77,7 @@ ipcMain.handle('save-api-key', (_, apiKey: string) => {
 
 // Database IPC handlers
 ipcMain.handle('get-notes', async () => {
+  console.log('get notes handler called');
   try {
     const notes = db.getNotes();
     return notes;

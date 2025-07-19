@@ -2,7 +2,7 @@ import { app } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import BetterSqlite3 from 'better-sqlite3';
-import { loadVssExtension } from 'sqlite-vss';
+import sqliteVss from 'sqlite-vss';
 
 // Define the database path
 const userDataPath = app.getPath('userData');
@@ -24,7 +24,12 @@ export class Database {
     this.db = new BetterSqlite3(dbPath);
     
     // Load the vector search extension
-    loadVssExtension(this.db);
+    try {
+      sqliteVss.load(this.db);
+      console.log('VSS extension loaded successfully');
+    } catch (error) {
+      console.warn('Failed to load VSS extension:', error);
+    }
     
     // Enable foreign keys
     this.db.pragma('foreign_keys = ON');
@@ -54,14 +59,19 @@ export class Database {
       )
     `);
 
-    // Create vector embeddings table
-    this.db.exec(`
-      CREATE VIRTUAL TABLE IF NOT EXISTS note_embeddings USING vss0(
-        embedding(1536),
-        id TEXT,
-        FOREIGN KEY(id) REFERENCES notes(id) ON DELETE CASCADE
-      )
-    `);
+    // Create vector embeddings table (only if VSS extension is available)
+    try {
+      this.db.exec(`
+        CREATE VIRTUAL TABLE IF NOT EXISTS note_embeddings USING vss0(
+          embedding(1536),
+          id TEXT,
+          FOREIGN KEY(id) REFERENCES notes(id) ON DELETE CASCADE
+        )
+      `);
+      console.log('Vector embeddings table created successfully');
+    } catch (error) {
+      console.warn('Failed to create vector embeddings table:', error);
+    }
 
     // Create index for faster queries
     this.db.exec(`

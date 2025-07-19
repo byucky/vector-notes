@@ -8,7 +8,7 @@ import { Note } from "./note";
 })
 
 export class NoteEditorComponent {
-    note: Note = new Note();
+    note: Note;
 
     constructor(private renderer: Renderer2) {}
 
