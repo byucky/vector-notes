@@ -3,7 +3,7 @@
   <form>
     <mat-form-field appearance="fill" style="width: 100%;">
       <mat-label>OpenAI API Key</mat-label>
-      <input matInput [formControl]="openaiKeyControl" placeholder="sk-..." />
+      <input matInput [(ngModel)]="settings.openaiApiKey" placeholder="sk-..." />
       <mat-hint>Your OpenAI API key will be stored locally</mat-hint>
     </mat-form-field>
   </form>

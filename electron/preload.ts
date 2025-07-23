@@ -8,8 +8,8 @@ contextBridge.exposeInMainWorld('electron', {
       console.log('Invoking channel:', channel);
       // Whitelist channels
       const validChannels = [
-        'get-api-key',
-        'save-api-key',
+        'get-settings',
+        'save-settings',
         'get-notes',
         'get-note',
         'create-note',

@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
 import { db } from '../src/utilities/db';
+import { AppSettings } from '../src/services/settings.service';
 
 // Define the path for storing settings
 const userDataPath = app.getPath('userData');
@@ -60,17 +61,14 @@ function saveSettings(settings: any): void {
 }
 
 // Set up IPC handlers
-ipcMain.handle('get-api-key', () => {
+ipcMain.handle('get-settings', () => {
+  console.log('get settings handler called');
   const settings = loadSettings();
-  if (settings.openaiApiKey) {
-    return decrypt(settings.openaiApiKey);
-  }
-  return '';
+  return settings;
 });
 
-ipcMain.handle('save-api-key', (_, apiKey: string) => {
-  const settings = loadSettings();
-  settings.openaiApiKey = encrypt(apiKey);
+ipcMain.handle('save-settings', (_, settings: AppSettings) => {
+  console.log('save settings handler called');
   saveSettings(settings);
   return true;
 });
@@ -127,27 +125,22 @@ ipcMain.handle('delete-note', async (_, id: string) => {
   }
 });
 
-// Initialize the database when the app is ready
-app.whenReady().then(() => {
-  // Initialize the database
+// Database initialization function - will be called from main.js
+export function initializeDatabase() {
   try {
     // Just accessing the db singleton will initialize it
     console.log('Database initialized successfully');
   } catch (error) {
     console.error('Failed to initialize database:', error);
   }
-  
-  // ... rest of your app initialization code ...
-});
+}
 
-// Close the database when the app is about to quit
-app.on('will-quit', () => {
+// Database cleanup function - will be called from main.js
+export function cleanupDatabase() {
   try {
     db.close();
     console.log('Database connection closed');
   } catch (error) {
     console.error('Error closing database connection:', error);
   }
-});
-
-// Rest of your Electron main process code... 
+} 
