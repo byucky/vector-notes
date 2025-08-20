@@ -14,7 +14,9 @@ contextBridge.exposeInMainWorld('electron', {
         'get-note',
         'create-note',
         'update-note',
-        'delete-note'
+        'delete-note',
+        'embed-note',
+        'search-similar-notes',
       ];
       if (validChannels.includes(channel)) {
         console.log(`channel ${channel} is valid`);

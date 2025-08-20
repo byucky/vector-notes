@@ -103,4 +103,23 @@ export class NoteService {
       return false;
     }
   }
+
+  async processNote(note: Note): Promise<boolean> {
+    try {
+      await this.ipcRenderer.invoke('embed-note', note);
+      return true;
+    } catch (error) {
+      console.error('Error embedding note:', error);
+      return false;
+    }
+  }
+
+  async searchSimilarNotes(query: string): Promise<Note[]> {
+    try {
+      return await this.ipcRenderer.invoke('search-similar-notes', query);
+    } catch (error) {
+      console.error('Error searching for similar notes:', error);
+      return [];
+    }
+  }
 }

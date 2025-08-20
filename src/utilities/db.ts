@@ -1,12 +1,19 @@
+import * as sqliteVec from "sqlite-vec";
 import { app } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import BetterSqlite3 from 'better-sqlite3';
-import sqliteVss from 'sqlite-vss';
+
 
 // Define the database path
 const userDataPath = app.getPath('userData');
 const dbPath = path.join(userDataPath, 'notes.db');
+
+export interface embeddedObject {
+  object: string;
+  embedding: number[];
+  index: number;
+}
 
 // Database class to handle all SQLite operations
 export class Database {
@@ -25,8 +32,9 @@ export class Database {
     
     // Load the vector search extension
     try {
-      sqliteVss.load(this.db);
-      console.log('VSS extension loaded successfully');
+      sqliteVec.load(this.db);
+      const { vec_version } = this.db.prepare('select vec_version() as vec_version').get() as { vec_version: string };
+      console.log('sqlite-vec extension loaded successfully', vec_version);
     } catch (error) {
       console.warn('Failed to load VSS extension:', error);
     }
@@ -59,19 +67,14 @@ export class Database {
       )
     `);
 
-    // Create vector embeddings table (only if VSS extension is available)
-    try {
-      this.db.exec(`
-        CREATE VIRTUAL TABLE IF NOT EXISTS note_embeddings USING vss0(
-          embedding(1536),
-          id TEXT,
-          FOREIGN KEY(id) REFERENCES notes(id) ON DELETE CASCADE
-        )
-      `);
-      console.log('Vector embeddings table created successfully');
-    } catch (error) {
-      console.warn('Failed to create vector embeddings table:', error);
-    }
+    // Create note_embeddings table for vector storage
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS note_embeddings (
+        id TEXT PRIMARY KEY,
+        embedding BLOB NOT NULL,
+        FOREIGN KEY (id) REFERENCES notes(id) ON DELETE CASCADE
+      )
+    `);
 
     // Create index for faster queries
     this.db.exec(`
@@ -130,32 +133,39 @@ export class Database {
   }
 
   // Store vector embedding for a note
-  public storeEmbedding(id: string, embedding: number[]): void {
-    // First delete any existing embedding for this note
-    const deleteStmt = this.db.prepare(`
-      DELETE FROM note_embeddings
-      WHERE id = ?
-    `);
-    deleteStmt.run(id);
+  public storeEmbedding(id: string, embedding: embeddedObject[]): void {
+    // Convert the embedding array to a single vector
+    // Flatten the array of embeddedObject arrays into a single number array
+    const flatEmbedding: number[] = [];
+    embedding.forEach(obj => {
+      flatEmbedding.push(...obj.embedding);
+    });
 
-    // Then insert the new embedding
-    const insertStmt = this.db.prepare(`
-      INSERT INTO note_embeddings (id, embedding)
+    // Convert the embedding to a BLOB for storage
+    const embeddingBuffer = Buffer.from(new Float64Array(flatEmbedding).buffer);
+
+    // Insert or replace the embedding
+    const stmt = this.db.prepare(`
+      INSERT OR REPLACE INTO note_embeddings (id, embedding)
       VALUES (?, ?)
     `);
-    insertStmt.run(id, embedding);
+    stmt.run(id, embeddingBuffer);
   }
 
   // Search for similar notes using vector similarity
   public searchSimilarNotes(embedding: number[], limit: number = 5): any[] {
+    // Convert the embedding to a BLOB for comparison
+    const embeddingBuffer = Buffer.from(new Float64Array(embedding).buffer);
+    
     const stmt = this.db.prepare(`
-      SELECT notes.id, notes.title, notes.content, notes.created_at, notes.updated_at
+      SELECT notes.id, notes.title, notes.content, notes.created_at, notes.updated_at,
+             vec_distance(note_embeddings.embedding, ?) as distance
       FROM note_embeddings
       JOIN notes ON note_embeddings.id = notes.id
-      ORDER BY vss_search(note_embeddings.embedding, ?) DESC
+      ORDER BY distance ASC
       LIMIT ?
     `);
-    return stmt.all(embedding, limit);
+    return stmt.all(embeddingBuffer, limit);
   }
 
   // Close the database connection

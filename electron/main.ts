@@ -1,81 +1,25 @@
 // Import necessary modules
-import { app, BrowserWindow, ipcMain } from 'electron';
-import * as path from 'path';
-import * as fs from 'fs';
-import * as crypto from 'crypto';
+import { ipcMain } from 'electron';
 import { db } from '../src/utilities/db';
 import { AppSettings } from '../src/services/settings.service';
+import { loadSettings, saveSettings } from '../src/utilities/settings';
+import { processNote, searchSimilarNotes } from '../src/utilities/embedder';
+import { Note } from '../src/components/note-editor/note';
 
-// Define the path for storing settings
-const userDataPath = app.getPath('userData');
-const settingsPath = path.join(userDataPath, 'settings.json');
-
-// Simple encryption key (in a real app, you'd want to handle this more securely)
-const ENCRYPTION_KEY = 'your-secret-encryption-key';
-
-// Function to encrypt sensitive data
-function encrypt(text: string): string {
-  const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
-  let encrypted = cipher.update(text);
-  encrypted = Buffer.concat([encrypted, cipher.final()]);
-  return iv.toString('hex') + ':' + encrypted.toString('hex');
-}
-
-// Function to decrypt sensitive data
-function decrypt(text: string): string {
-  try {
-    const textParts = text.split(':');
-    const iv = Buffer.from(textParts.shift() || '', 'hex');
-    const encryptedText = Buffer.from(textParts.join(':'), 'hex');
-    const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
-    let decrypted = decipher.update(encryptedText);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
-    return decrypted.toString();
-  } catch (error) {
-    console.error('Decryption error:', error);
-    return '';
-  }
-}
-
-// Function to load settings
-function loadSettings(): any {
-  try {
-    if (fs.existsSync(settingsPath)) {
-      const data = fs.readFileSync(settingsPath, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (error) {
-    console.error('Error loading settings:', error);
-  }
-  return {};
-}
-
-// Function to save settings
-function saveSettings(settings: any): void {
-  try {
-    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
-  } catch (error) {
-    console.error('Error saving settings:', error);
-  }
-}
 
 // Set up IPC handlers
 ipcMain.handle('get-settings', () => {
-  console.log('get settings handler called');
   const settings = loadSettings();
   return settings;
 });
 
 ipcMain.handle('save-settings', (_, settings: AppSettings) => {
-  console.log('save settings handler called');
   saveSettings(settings);
   return true;
 });
 
 // Database IPC handlers
 ipcMain.handle('get-notes', async () => {
-  console.log('get notes handler called');
   try {
     const notes = db.getNotes();
     return notes;
@@ -121,6 +65,26 @@ ipcMain.handle('delete-note', async (_, id: string) => {
     return true;
   } catch (error) {
     console.error('Error deleting note:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('embed-note', async (_, note: Note) => {
+  try {
+    await processNote(note);
+    return true;
+  } catch (error) {
+    console.error('Error embedding note:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('search-similar-notes', async (_, query: string) => {
+  try {
+    const similarNotes = await searchSimilarNotes(query);
+    return similarNotes;
+  } catch (error) {
+    console.error('Error searching for similar notes:', error);
     throw error;
   }
 });

@@ -21,7 +21,9 @@ export class NoteStateService {
 
   public state$: Observable<NoteState> = this.stateSubject.asObservable();
 
-  constructor(private noteService: NoteService) {}
+  constructor(
+    private noteService: NoteService,
+  ) {}
 
   /**
    * Get the current state
@@ -56,6 +58,12 @@ export class NoteStateService {
    */
   async selectNote(noteId: string): Promise<void> {
     const currentState = this.getState();
+    
+    // If there's a currently selected note with changes, embed it before switching
+    if (currentState.selectedNote) {
+      await this.embedNote(currentState.selectedNote);
+    }
+    
     const note = currentState.notes.find(n => n.id === noteId);
     
     if (note) {
@@ -160,8 +168,39 @@ export class NoteStateService {
   /**
    * Clear the selected note
    */
-  clearSelection(): void {
+  async clearSelection(): Promise<void> {
+    const currentState = this.getState();
+    
+    // If there's a currently selected note embed it before clearing
+    if (currentState.selectedNote) {
+      await this.embedNote(currentState.selectedNote);
+    }
+    
     this.updateState({ selectedNote: null });
+  }
+
+  /**
+   * Embed a note if it has changed
+   */
+  private async embedNote(note: Note): Promise<void> {
+    try {
+      console.log(`Embedding note ${note.id}`);
+      
+      // Embed the note
+      await this.noteService.processNote(note);
+    } catch (error) {
+      console.error(`Error embedding note ${note.id}:`, error);
+    }
+  }
+
+  /**
+   * Manually trigger embedding for the current note
+   */
+  async embedCurrentNote(): Promise<void> {
+    const currentState = this.getState();
+    if (currentState.selectedNote) {
+      await this.embedNote(currentState.selectedNote);
+    }
   }
 
   /**
