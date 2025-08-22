@@ -94,26 +94,77 @@ const embedIdeas = async (ideas: string[], openaikey: string): Promise<embeddedO
 /**
   * Find similar notes based on embedding similarity
   * 
-  * @param note The reference note
-  * @param allNotes Array of all notes to search through
+  * @param query The search query string
   * @param limit Maximum number of similar notes to return
   * @returns Promise<Note[]> - Array of similar notes sorted by similarity
   */
 export const searchSimilarNotes = async (query: string, limit: number = 5): Promise<Note[]> => {
     try {
-        // TODO: Implement similarity search
-        // This could involve:
-        // 1. Computing cosine similarity between embeddings
-        // 2. Using the VSS extension in SQLite for vector search
-        // 3. Implementing k-nearest neighbors algorithm
-        // 4. Filtering out the reference note itself
-
         console.log('Finding similar notes for:', query);
 
-        // Placeholder implementation
-        return [];
+        // Load settings to get OpenAI API key
+        const settings = loadSettings();
+        const openaikey = settings.openaiApiKey;
+
+        if (!openaikey) {
+            throw new Error('OpenAI API key not found');
+        }
+
+        // First, embed the search query to get its vector representation
+        const queryEmbedding = await embedQuery(query, openaikey);
+        
+        // Use the database's vector similarity search
+        const similarNotes = db.searchSimilarNotes(queryEmbedding, limit);
+        
+        // Convert the database results to Note objects
+        const notes: Note[] = similarNotes.map((noteData: any) => {
+            return new Note(
+                noteData.id,
+                noteData.title,
+                noteData.content,
+                noteData.created_at,
+                noteData.updated_at
+            );
+        });
+
+        console.log(`Found ${notes.length} similar notes`);
+        return notes;
     } catch (error) {
         console.error('Error finding similar notes:', error);
         return [];
+    }
+}
+
+/**
+ * Embed a single query string for similarity search
+ * 
+ * @param query The search query to embed
+ * @param openaikey OpenAI API key
+ * @returns Promise<number[]> - Vector embedding of the query
+ */
+const embedQuery = async (query: string, openaikey: string): Promise<number[]> => {
+    const response = await fetch('https://api.openai.com/v1/embeddings', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${openaikey}`
+        },
+        body: JSON.stringify({
+            model: 'text-embedding-ada-002',
+            input: query
+        })
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to embed query');
+    }
+
+    const data = await response.json();
+    
+    // Extract the embedding vector from the response
+    if (data.data && data.data.length > 0) {
+        return data.data[0].embedding;
+    } else {
+        throw new Error('No embedding data received from OpenAI');
     }
 }

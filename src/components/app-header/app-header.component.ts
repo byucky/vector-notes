@@ -3,6 +3,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
 import { MatDialog } from "@angular/material/dialog";
 import { SettingsDialogComponent } from "../settings-dialog/settings-dialog.component";
+import { NoteSearchComponent } from "../note-search/note-search.component";
 
 @Component({
     selector: 'app-header',
@@ -11,6 +12,7 @@ import { SettingsDialogComponent } from "../settings-dialog/settings-dialog.comp
     imports: [
         MatIconModule,
         MatButtonModule,
+        NoteSearchComponent,
     ]
 })
 

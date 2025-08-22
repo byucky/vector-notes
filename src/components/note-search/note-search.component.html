@@ -1,0 +1,20 @@
+<div class="search-container">
+    <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search notes</mat-label>
+        <input 
+            matInput 
+            [(ngModel)]="searchQuery" 
+            placeholder="What information are you looking for?"
+            (input)="onSearch($event)"
+            (keypress)="onKeyPress($event)"
+        >
+        <button 
+            matSuffix 
+            mat-icon-button 
+            (click)="onSearchIconClick()"
+            aria-label="Search"
+        >
+            <mat-icon>search</mat-icon>
+        </button>
+    </mat-form-field>
+</div>

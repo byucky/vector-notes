@@ -29,19 +29,29 @@ export class Database {
 
     // Initialize the database
     this.db = new BetterSqlite3(dbPath);
-    
+
     // Load the vector search extension
     try {
       sqliteVec.load(this.db);
       const { vec_version } = this.db.prepare('select vec_version() as vec_version').get() as { vec_version: string };
       console.log('sqlite-vec extension loaded successfully', vec_version);
+      
+      // Test if vec_distance function is available
+      try {
+        this.db.prepare('SELECT vec_distance(?, ?)').get(Buffer.from([0, 0, 0]), Buffer.from([0, 0, 0]));
+        console.log('vec_distance function is available');
+      } catch (testError) {
+        console.error('vec_distance function test failed:', testError);
+        throw new Error('Vector functions not properly loaded');
+      }
     } catch (error) {
-      console.warn('Failed to load VSS extension:', error);
+      console.error('Failed to load VSS extension:', error);
+      throw error;
     }
-    
+
     // Enable foreign keys
     this.db.pragma('foreign_keys = ON');
-    
+
     // Initialize the database schema
     this.initSchema();
   }
@@ -156,7 +166,7 @@ export class Database {
   public searchSimilarNotes(embedding: number[], limit: number = 5): any[] {
     // Convert the embedding to a BLOB for comparison
     const embeddingBuffer = Buffer.from(new Float64Array(embedding).buffer);
-    
+
     const stmt = this.db.prepare(`
       SELECT notes.id, notes.title, notes.content, notes.created_at, notes.updated_at,
              vec_distance(note_embeddings.embedding, ?) as distance
