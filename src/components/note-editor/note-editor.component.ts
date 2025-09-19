@@ -1,4 +1,4 @@
-import { Component, ViewChildren, QueryList, ElementRef, Renderer2, OnInit, OnDestroy } from "@angular/core";
+import { Component, Renderer2, OnInit, OnDestroy } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { Note } from "./note";
 import { NoteStateService, NoteState } from "../../services/note-state.service";

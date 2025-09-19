@@ -25,9 +25,7 @@ export class NotesNavigatorComponent implements OnInit, OnDestroy {
     loading: boolean = false;
     private subscription: Subscription;
 
-    constructor(private noteStateService: NoteStateService) {
-        console.log('NotesNavigatorComponent');
-    }
+    constructor(private noteStateService: NoteStateService) { }
 
     ngOnInit() {
         this.subscription = this.noteStateService.state$.subscribe((state: NoteState) => {
@@ -51,7 +49,6 @@ export class NotesNavigatorComponent implements OnInit, OnDestroy {
      */
     onNoteClick(note: Note) {
         this.noteStateService.selectNote(note.id);
-        console.log('Note selected:', note);
     }
 
     /**

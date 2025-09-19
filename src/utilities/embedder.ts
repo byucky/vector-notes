@@ -1,6 +1,7 @@
 import { Note } from "../components/note-editor/note";
 import { embeddedObject, db } from "./db";
 import { loadSettings } from "./settings";
+import OpenAI from "openai";
 
 
 export interface EmbeddingResult {
@@ -18,6 +19,10 @@ export interface CategorizationResult {
     error?: string;
 }
 
+const openAiClient = new OpenAI({
+    apiKey: loadSettings().openaiApiKey
+});
+
 /**
   * Embed Ideas
   * Converts note content into vector embeddings for similarity search
@@ -34,13 +39,16 @@ export const processNote = async (note: Note): Promise<void> => {
         throw new Error('OpenAI API key not found');
     }
 
-    const noteIdeas = await splitNoteIdeas(note, openaikey);
-    const embeddings = await embedIdeas(noteIdeas, openaikey);
+    const noteIdeas = await splitNoteIdeas(note);
+    const embeddings = await embedIdeas(noteIdeas, note.id);
 
-    db.storeEmbedding(note.id, embeddings); // Store the embedding in the database
+    for (const embedding of embeddings) {
+        await db.storeEmbedding(embedding, note.id); // Store the embedding in the database
+    }
+    console.log('Finished embedding note');
 }
 
-const splitNoteIdeas = async (note: Note, openaikey: string): Promise<string[]> => {
+const splitNoteIdeas = async (note: Note): Promise<string[]> => {
     const basePrompt = `
     You are a helpful assistant that splits a note into separate ideas.
     The note is titled: ${note.title}
@@ -50,45 +58,31 @@ const splitNoteIdeas = async (note: Note, openaikey: string): Promise<string[]> 
     Do not include any other text in your response.
     `;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${openaikey}`
-        },
-        body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            messages: [{ role: 'user', content: basePrompt }],
-            temperature: 0.7
-        })
+    const response = await openAiClient.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: basePrompt }],
+        temperature: 0.7
     });
 
-    const data = await response.json();
-
-    const ideas = JSON.parse(data.choices[0].message.content) as string[];
+    const ideas = JSON.parse(response.choices[0].message.content as string);
 
     return ideas;
 }
 
-const embedIdeas = async (ideas: string[], openaikey: string): Promise<embeddedObject[]> => {
-    const response = await fetch('https://api.openai.com/v1/embeddings', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${openaikey}`
-        },
-        body: JSON.stringify({
-            model: 'text-embedding-ada-002',
-            input: ideas
-        })
+const embedIdeas = async (ideas: string[], noteId: string): Promise<embeddedObject[]> => {
+    const allRequests = await openAiClient.embeddings.create({
+        model: 'text-embedding-3-small',
+        input: ideas
+    });
+    
+    const embeddings: embeddedObject[] = allRequests.data.map((embedding) => {
+        return {
+            noteId: noteId,
+            embedding: embedding.embedding,
+        }
     });
 
-    if (!response.ok) {
-        throw new Error('Failed to embed ideas');
-    }
-
-    const data = await response.json();
-    return data.data as embeddedObject[];
+    return embeddings;
 }
 
 /**
@@ -114,21 +108,22 @@ export const searchSimilarNotes = async (query: string, limit: number = 5): Prom
         const queryEmbedding = await embedQuery(query, openaikey);
         
         // Use the database's vector similarity search
-        const similarNotes = db.searchSimilarNotes(queryEmbedding, limit);
+        const similarNotes = await db.searchSimilarNotes(queryEmbedding, limit);
+
+        console.log('similarNotes', similarNotes);
         
         // Convert the database results to Note objects
-        const notes: Note[] = similarNotes.map((noteData: any) => {
-            return new Note(
-                noteData.id,
-                noteData.title,
-                noteData.content,
-                noteData.created_at,
-                noteData.updated_at
-            );
-        });
+        // const notes: Note[] = similarNotes.map((noteData: any) => {
+        //     return new Note(
+        //         noteData.id,
+        //         noteData.title,
+        //         noteData.content,
+        //         noteData.created_at,
+        //         noteData.updated_at
+        //     );
+        // });
 
-        console.log(`Found ${notes.length} similar notes`);
-        return notes;
+        return [];
     } catch (error) {
         console.error('Error finding similar notes:', error);
         return [];

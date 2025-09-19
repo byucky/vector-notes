@@ -69,7 +69,6 @@ export class NoteService {
    */
   async createNote(note: { id: string, title: string, content: string }): Promise<boolean> {
     try {
-      console.log('Creating note:', note);
       await this.ipcRenderer.invoke('create-note', note);
       return true;
     } catch (error) {

@@ -1,6 +1,6 @@
 // Import necessary modules
 import { ipcMain } from 'electron';
-import { db } from '../src/utilities/db';
+import { db, Database } from '../src/utilities/db';
 import { AppSettings } from '../src/services/settings.service';
 import { loadSettings, saveSettings } from '../src/utilities/settings';
 import { processNote, searchSimilarNotes } from '../src/utilities/embedder';
@@ -21,8 +21,7 @@ ipcMain.handle('save-settings', (_, settings: AppSettings) => {
 // Database IPC handlers
 ipcMain.handle('get-notes', async () => {
   try {
-    const notes = db.getNotes();
-    return notes;
+    return db.getNotes();
   } catch (error) {
     console.error('Error getting notes:', error);
     throw error;
@@ -31,7 +30,7 @@ ipcMain.handle('get-notes', async () => {
 
 ipcMain.handle('get-note', async (_, id: string) => {
   try {
-    const note = db.getNote(id);
+    const note = await db.getNote(id);
     return note;
   } catch (error) {
     console.error('Error getting note:', error);
@@ -41,7 +40,7 @@ ipcMain.handle('get-note', async (_, id: string) => {
 
 ipcMain.handle('create-note', async (_, note: { id: string, title: string, content: string }) => {
   try {
-    db.createNote(note);
+    await db.createNote(note);
     return true;
   } catch (error) {
     console.error('Error creating note:', error);
@@ -51,7 +50,7 @@ ipcMain.handle('create-note', async (_, note: { id: string, title: string, conte
 
 ipcMain.handle('update-note', async (_, note: { id: string, title: string, content: string }) => {
   try {
-    db.updateNote(note);
+    await db.updateNote(note);
     return true;
   } catch (error) {
     console.error('Error updating note:', error);
@@ -61,7 +60,7 @@ ipcMain.handle('update-note', async (_, note: { id: string, title: string, conte
 
 ipcMain.handle('delete-note', async (_, id: string) => {
   try {
-    db.deleteNote(id);
+    await db.deleteNote(id);
     return true;
   } catch (error) {
     console.error('Error deleting note:', error);
@@ -82,6 +81,7 @@ ipcMain.handle('embed-note', async (_, note: Note) => {
 ipcMain.handle('search-similar-notes', async (_, query: string) => {
   try {
     const similarNotes = await searchSimilarNotes(query);
+    console.log('similarNotes', similarNotes);
     return similarNotes;
   } catch (error) {
     console.error('Error searching for similar notes:', error);
@@ -90,9 +90,11 @@ ipcMain.handle('search-similar-notes', async (_, query: string) => {
 });
 
 // Database initialization function - will be called from main.js
-export function initializeDatabase() {
+export async function initializeDatabase() {
   try {
     // Just accessing the db singleton will initialize it
+    Database.getInstance();
+    await Database.initializationPromise;
     console.log('Database initialized successfully');
   } catch (error) {
     console.error('Failed to initialize database:', error);

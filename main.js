@@ -26,10 +26,10 @@ function createWindow() {
 }
 
 // This will be called when Electron has finished initialization
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
     // Initialize the database
     if (electronMain.initializeDatabase) {
-        electronMain.initializeDatabase();
+        await electronMain.initializeDatabase();
     }
     
     createWindow();
