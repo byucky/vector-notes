@@ -4,6 +4,7 @@ import { FormsModule } from "@angular/forms";
 import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
 import { NoteService } from "../../services/note.service";
+import { NoteStateService } from "../../services/note-state.service";
 
 @Component({
     selector: 'note-search',
@@ -20,7 +21,10 @@ import { NoteService } from "../../services/note.service";
 export class NoteSearchComponent {
     searchQuery: string = '';
 
-    constructor(private noteService: NoteService) { }
+    constructor(
+        private noteService: NoteService,
+        private noteStateService: NoteStateService
+    ) { }
 
     onSearch(event: Event): void {
         const target = event.target as HTMLInputElement;
@@ -39,11 +43,8 @@ export class NoteSearchComponent {
 
     private async performSearch(): Promise<void> {
         if (this.searchQuery.trim()) {
-            console.log('Performing search for:', this.searchQuery);
-            // Add your search logic here
-
-            const notes = await this.noteService.searchSimilarNotes(this.searchQuery);
-            console.log('Search results:', notes);
+            const similarNotes = await this.noteService.searchSimilarNotes(this.searchQuery.trim());
+            this.noteStateService.setSearchResults(similarNotes);
         }
     }
 }

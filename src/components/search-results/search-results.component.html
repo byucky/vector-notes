@@ -1,0 +1,43 @@
+<div class="search-results-container">
+  <div class="search-results-header">
+    <h2>Search Results</h2>
+    <button mat-button color="primary" (click)="onBackToNotes()">
+      Back to Notes
+    </button>
+  </div>
+
+  <div class="search-results-list" *ngIf="searchResults.length > 0; else noResults">
+    <mat-card 
+      *ngFor="let result of searchResults" 
+      class="search-result-card"
+      (click)="onResultClick(result)">
+      
+      <mat-card-header>
+        <mat-card-title class="idea-title">
+          {{ result.idea }}
+        </mat-card-title>
+        <mat-card-subtitle>
+          Note ID: {{ result.noteId }}
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="content-preview">
+          <span [innerHTML]="highlightIdea(result.content, result.idea)"></span>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button mat-button color="primary">
+          Open Note
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <ng-template #noResults>
+    <div class="no-results">
+      <p>No search results found.</p>
+    </div>
+  </ng-template>
+</div>

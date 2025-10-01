@@ -5,7 +5,10 @@
       <notes-navigator />
     </mat-sidenav>
     <mat-sidenav-content class="note-editor">
-      <note-editor></note-editor>
+      <search-results *ngIf="hasSearchResults(); else noteEditor"></search-results>
+      <ng-template #noteEditor>
+        <note-editor></note-editor>
+      </ng-template>
     </mat-sidenav-content>
   </mat-sidenav-container>
 </main>
