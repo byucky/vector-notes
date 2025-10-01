@@ -2,10 +2,12 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Note } from '../components/note-editor/note';
 import { NoteService } from './note.service';
+import { NoteEmbeddingDto } from '../utilities/dtoUtility';
 
 export interface NoteState {
   notes: Note[];
   selectedNote: Note | null;
+  searchResults: NoteEmbeddingDto[];
   loading: boolean;
 }
 
@@ -16,6 +18,7 @@ export class NoteStateService {
   private stateSubject = new BehaviorSubject<NoteState>({
     notes: [],
     selectedNote: null,
+    searchResults: [],
     loading: false
   });
 
@@ -61,7 +64,7 @@ export class NoteStateService {
     
     // If there's a currently selected note with changes, embed it before switching
     if (currentState.selectedNote) {
-      await this.embedNote(currentState.selectedNote);
+      this.embedNote(currentState.selectedNote);
     }
     
     const note = currentState.notes.find(n => n.id === noteId);
@@ -171,11 +174,6 @@ export class NoteStateService {
   async clearSelection(): Promise<void> {
     const currentState = this.getState();
     
-    // If there's a currently selected note embed it before clearing
-    if (currentState.selectedNote) {
-      await this.embedNote(currentState.selectedNote);
-    }
-    
     this.updateState({ selectedNote: null });
   }
 
@@ -184,23 +182,21 @@ export class NoteStateService {
    */
   private async embedNote(note: Note): Promise<void> {
     try {
-      console.log(`Embedding note ${note.id}`);
-      
       // Embed the note
-      await this.noteService.processNote(note);
+      if(note.has_changed) {
+        this.noteService.processNote(note);
+      }
     } catch (error) {
       console.error(`Error embedding note ${note.id}:`, error);
     }
   }
 
-  /**
-   * Manually trigger embedding for the current note
-   */
-  async embedCurrentNote(): Promise<void> {
-    const currentState = this.getState();
-    if (currentState.selectedNote) {
-      await this.embedNote(currentState.selectedNote);
-    }
+  setSearchResults(searchResults: NoteEmbeddingDto[]): void {
+    this.updateState({ searchResults });
+  }
+
+  clearSearchResults(): void {
+    this.updateState({ searchResults: [] });
   }
 
   /**

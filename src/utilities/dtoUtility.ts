@@ -5,3 +5,10 @@ export interface NoteDto {
     created_at: number;
     updated_at: number;
 }
+
+export interface NoteEmbeddingDto {
+    id: string;
+    idea: string;
+    noteId: string;
+    content: string;
+}

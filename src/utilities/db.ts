@@ -7,7 +7,7 @@ import {
 import { app } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
-import { NoteDto } from './dtoUtility';
+import { NoteDto, NoteEmbeddingDto } from './dtoUtility';
 import { v4 as uuidv4 } from 'uuid';
 
 // Define the database path
@@ -17,6 +17,7 @@ const EMBED_ARRAY_LENGTH = 10;
 
 export interface embeddedObject {
   noteId: string;
+  idea: string;
   embedding: number[];
 }
 
@@ -35,8 +36,10 @@ export class Database {
 
     // Store the initialization promise
     Database.initializationPromise = this.initializeDatabase()
-    .then(() => {
-      return this.initSchema();
+    .then(async () => {
+      await this.initSchema();
+      // await this.createTestData();
+      return Promise.resolve();
     })
     .then(() => {
       console.log('DuckDB database initialized successfully');
@@ -48,16 +51,13 @@ export class Database {
   }
 
   private async initializeDatabase(): Promise<void> {
-    console.log('Creating DuckDB connection');
     const dbInstance = await DuckDBInstance.create(dbPath);
     this.db = await dbInstance.connect();
   }
 
   // Singleton pattern to ensure only one database connection
   public static getInstance(): Database {
-    console.log('Getting database instance');
     if (!Database.instance) {
-      console.log('Creating new database instance');
       Database.instance = new Database();
     }
     return Database.instance;
@@ -65,7 +65,6 @@ export class Database {
 
   // Initialize the database schema
   private async initSchema(): Promise<void> {
-    console.log('Initializing database schema');
     // 1) Ensure vss is available on THIS connection
     try {
       await this.db.run(`
@@ -79,12 +78,6 @@ export class Database {
         `DuckDB VSS extension not available. Ensure your DuckDB version supports it and that the process can install/load extensions. Original: ${e}`
       );
     }
-
-    const result = await this.db.run(`
-      SELECT * FROM duckdb_extensions();
-    `);
-    const resultString = await result.getRows();
-    console.log('result', resultString);
 
     // Create notes table
     await this.db.run(`
@@ -101,23 +94,22 @@ export class Database {
       CREATE TABLE IF NOT EXISTS note_embeddings (
         id VARCHAR PRIMARY KEY,
         embedding FLOAT[${EMBED_ARRAY_LENGTH}] NOT NULL,
-        note_id VARCHAR NOT NULL,
-        FOREIGN KEY (note_id) REFERENCES notes(id)
+        idea TEXT NOT NULL,
+        note_id VARCHAR NOT NULL
+        -- Removed foreign key constraint to avoid update issues
       );
-      CREATE INDEX IF NOT EXISTS idx_note_embeddings_embedding ON note_embeddings USING HNSW (embedding);
     `);
 
     // Create index for faster queries
     await this.db.run(`
+      CREATE INDEX IF NOT EXISTS idx_note_embeddings_embedding ON note_embeddings USING HNSW (embedding) WITH (metric = 'cosine');
+      CREATE INDEX IF NOT EXISTS idx_note_embeddings_note_id ON note_embeddings(note_id);
       CREATE INDEX IF NOT EXISTS idx_notes_updated_at ON notes(updated_at DESC);
     `);
-    
-    console.log('Database schema initialized successfully');
   }
 
   // Get all notes
   public async getNotes(): Promise<NoteDto[]> {
-    console.log('Getting notes from sql');
     const reader = await this.db.runAndReadAll(`
       SELECT 
         id, 
@@ -128,35 +120,22 @@ export class Database {
       FROM notes
       ORDER BY updated_at DESC
     `);
-    try {
-      await this.getAllEmbeddings();
-    } catch (error) {
-      console.error('Error getting all embeddings:', error);
-    }
 
     return reader.getRows().map(convertDBRowToNoteDto);
   }
 
-  private async getAllEmbeddings(): Promise<void> {
-    const reader = await this.db.runAndReadAll(`
-      SELECT id, embedding, note_id FROM note_embeddings
-    `)
-    const embeddings = reader.getRows();
-    console.log('embeddings', embeddings);
-  }
-
   // Get a note by ID
-    public async getNote(id: string): Promise<DuckDBMaterializedResult> {
-      return this.db.run(`
-        SELECT 
-          id, 
-          title, 
-          content, 
-          created_at, 
-          updated_at
-        FROM notes
-        WHERE id = ?
-      `, [id]);
+  public async getNote(id: string): Promise<DuckDBMaterializedResult> {
+    return this.db.run(`
+      SELECT 
+        id, 
+        title, 
+        content, 
+        created_at, 
+        updated_at
+      FROM notes
+      WHERE id = ?
+    `, [id]);
   }
 
   // Create a new note
@@ -186,44 +165,61 @@ export class Database {
       `, [id])
   }
 
+  public async updateNoteEmbedding(id: string, embedding: number[], idea: string): Promise<DuckDBMaterializedResult> {
+    return this.db.run(`
+      UPDATE note_embeddings
+      SET embedding = [${this.mapEmbeddingToQuery(embedding)}]::FLOAT[${EMBED_ARRAY_LENGTH}], idea = ?
+      WHERE id = ?;
+    `, [idea, id])
+  }
+
   // Store vector embedding for a note
-  public async storeEmbedding(embedding: embeddedObject, noteId: string): Promise<DuckDBMaterializedResult> {
+  public async storeEmbedding(embedding: embeddedObject, idea: string, noteId: string): Promise<DuckDBMaterializedResult> {
     const id = uuidv4();
     const query = `
-      INSERT OR REPLACE INTO note_embeddings (id, embedding, note_id)
-      VALUES (?, [${this.mapEmbeddingToQuery(embedding.embedding)}]::FLOAT[${EMBED_ARRAY_LENGTH}], ?);
+      INSERT OR REPLACE INTO note_embeddings (id, embedding, idea, note_id)
+      VALUES (?, [${this.mapEmbeddingToQuery(embedding.embedding)}]::FLOAT[${EMBED_ARRAY_LENGTH}], ?, ?);
     `
-    return this.db.run(query, [id, noteId])
+    return this.db.run(query, [id, idea, noteId])
+  }
+
+  public async deleteNoteEmbeddings(noteid: string): Promise<DuckDBMaterializedResult> {
+    return this.db.run(`
+      DELETE FROM note_embeddings
+      WHERE note_id = ?;
+    `, [noteid]);
   }
 
   // Search for similar notes using vector similarity
   // DuckDB has native cosine_similarity function
-  public async searchSimilarNotes(embedding: number[], limit: number = 5): Promise<NoteDto[]> {
-    console.log('embedding', embedding);
-    const reader = await this.db.runAndReadAll(
-      `
-        SELECT notes.id, notes.title, notes.content, notes.created_at, notes.updated_at
+  public async searchSimilarNotes(embedding: number[], limit: number = 5): Promise<NoteEmbeddingDto[]> {
+    const query = `
+        SELECT note_embeddings.id, note_embeddings.idea, notes.id, notes.content
         FROM note_embeddings
-        JOIN notes ON note_embeddings.id = notes.id
+        JOIN notes ON note_embeddings.note_id = notes.id
         ORDER BY array_distance(embedding, [${this.mapEmbeddingToQuery(embedding)}]::FLOAT[${EMBED_ARRAY_LENGTH}])
         LIMIT ?
-      `, [limit]
-    );
+      `;
+
+    const reader = await this.db.runAndReadAll(query, [limit]);
 
     const rows = reader.getRows();
-    console.log('rows', rows);
-    return rows.map(convertDBRowToNoteDto);
+    return rows.map(convertDBRowToNoteEmbeddingDto);
+  }
+
+  public async getNoteEmbeddingByNoteId(noteId: string): Promise<DuckDBMaterializedResult> {
+    return this.db.run(`
+      SELECT embedding FROM note_embeddings WHERE note_id = ?;
+    `, [noteId])
   }
 
   private mapEmbeddingToQuery(embedding: number[]): string {
     const slicedEmbedding = embedding.splice(0, EMBED_ARRAY_LENGTH).map((value) => `${value}`).join(',');
-    console.log('slicedEmbedding', slicedEmbedding);
     return slicedEmbedding;
   }
 
   // Close the database connection
   public close(): void {
-    console.log('Closing database connection');
     this.db.disconnectSync();
   }
 }
@@ -235,6 +231,15 @@ const convertDBRowToNoteDto = (row: DuckDBValue[]): NoteDto => {
     content: row[2] as string,
     created_at: new Date(row[3] as string).getTime() / 1000,
     updated_at: new Date(row[4] as string).getTime() / 1000
+  }
+}
+
+const convertDBRowToNoteEmbeddingDto = (row: DuckDBValue[]): NoteEmbeddingDto => {
+  return {
+    id: row[0] as string,
+    idea: row[1] as string,
+    noteId: row[2] as string,
+    content: row[3] as string
   }
 }
 

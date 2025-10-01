@@ -81,7 +81,6 @@ ipcMain.handle('embed-note', async (_, note: Note) => {
 ipcMain.handle('search-similar-notes', async (_, query: string) => {
   try {
     const similarNotes = await searchSimilarNotes(query);
-    console.log('similarNotes', similarNotes);
     return similarNotes;
   } catch (error) {
     console.error('Error searching for similar notes:', error);

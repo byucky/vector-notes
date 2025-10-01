@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Note } from '../components/note-editor/note';
+import { NoteEmbeddingDto } from '../utilities/dtoUtility';
 
 // Define the type for the exposed electron API
 declare global {
@@ -113,7 +114,7 @@ export class NoteService {
     }
   }
 
-  async searchSimilarNotes(query: string): Promise<Note[]> {
+  async searchSimilarNotes(query: string): Promise<NoteEmbeddingDto[]> {
     try {
       return await this.ipcRenderer.invoke('search-similar-notes', query);
     } catch (error) {

@@ -1,5 +1,6 @@
 import { Note } from "../components/note-editor/note";
 import { embeddedObject, db } from "./db";
+import { NoteEmbeddingDto } from "./dtoUtility";
 import { loadSettings } from "./settings";
 import OpenAI from "openai";
 
@@ -42,8 +43,11 @@ export const processNote = async (note: Note): Promise<void> => {
     const noteIdeas = await splitNoteIdeas(note);
     const embeddings = await embedIdeas(noteIdeas, note.id);
 
+    // remove old embeddings.
+    db.deleteNoteEmbeddings(note.id);
+
     for (const embedding of embeddings) {
-        await db.storeEmbedding(embedding, note.id); // Store the embedding in the database
+        await db.storeEmbedding(embedding, embedding.idea, note.id);
     }
     console.log('Finished embedding note');
 }
@@ -75,8 +79,9 @@ const embedIdeas = async (ideas: string[], noteId: string): Promise<embeddedObje
         input: ideas
     });
     
-    const embeddings: embeddedObject[] = allRequests.data.map((embedding) => {
+    const embeddings: embeddedObject[] = allRequests.data.map((embedding, index) => {
         return {
+            idea: ideas[index],
             noteId: noteId,
             embedding: embedding.embedding,
         }
@@ -92,7 +97,7 @@ const embedIdeas = async (ideas: string[], noteId: string): Promise<embeddedObje
   * @param limit Maximum number of similar notes to return
   * @returns Promise<Note[]> - Array of similar notes sorted by similarity
   */
-export const searchSimilarNotes = async (query: string, limit: number = 5): Promise<Note[]> => {
+export const searchSimilarNotes = async (query: string, limit: number = 5): Promise<NoteEmbeddingDto[]> => {
     try {
         console.log('Finding similar notes for:', query);
 
@@ -111,19 +116,8 @@ export const searchSimilarNotes = async (query: string, limit: number = 5): Prom
         const similarNotes = await db.searchSimilarNotes(queryEmbedding, limit);
 
         console.log('similarNotes', similarNotes);
-        
-        // Convert the database results to Note objects
-        // const notes: Note[] = similarNotes.map((noteData: any) => {
-        //     return new Note(
-        //         noteData.id,
-        //         noteData.title,
-        //         noteData.content,
-        //         noteData.created_at,
-        //         noteData.updated_at
-        //     );
-        // });
 
-        return [];
+        return similarNotes;
     } catch (error) {
         console.error('Error finding similar notes:', error);
         return [];
