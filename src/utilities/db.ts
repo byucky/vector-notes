@@ -13,7 +13,8 @@ import { v4 as uuidv4 } from 'uuid';
 // Define the database path
 const userDataPath = app.getPath('userData');
 const dbPath = path.join(userDataPath, 'notes.duckdb');
-const EMBED_ARRAY_LENGTH = 10;
+// OpenAI text-embedding-3-small and text-embedding-ada-002 both produce 1536-dimensional embeddings
+const EMBED_ARRAY_LENGTH = 1536;
 
 export interface embeddedObject {
   noteId: string;
@@ -214,7 +215,8 @@ export class Database {
   }
 
   private mapEmbeddingToQuery(embedding: number[]): string {
-    const slicedEmbedding = embedding.splice(0, EMBED_ARRAY_LENGTH).map((value) => `${value}`).join(',');
+    // Use slice instead of splice to avoid mutating the original array
+    const slicedEmbedding = embedding.slice(0, EMBED_ARRAY_LENGTH).map((value) => `${value}`).join(',');
     return slicedEmbedding;
   }
 

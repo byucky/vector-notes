@@ -139,7 +139,7 @@ const embedQuery = async (query: string, openaikey: string): Promise<number[]> =
             'Authorization': `Bearer ${openaikey}`
         },
         body: JSON.stringify({
-            model: 'text-embedding-ada-002',
+            model: 'text-embedding-3-small',
             input: query
         })
     });

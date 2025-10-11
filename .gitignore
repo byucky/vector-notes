@@ -38,6 +38,10 @@ testem.log
 /typings
 keys.txt
 
+# Test databases
+tests/test-data/
+tests/test-data-vector/
+
 # System files
 .DS_Store
 Thumbs.db

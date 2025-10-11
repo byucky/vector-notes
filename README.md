@@ -77,13 +77,85 @@ ng build
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 
-## Running unit tests
+## Running Tests
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+This project includes comprehensive tests for both the Angular components and the database/vector search functionality.
+
+### Angular Unit Tests
+
+To execute Angular unit tests with the [Karma](https://karma-runner.github.io) test runner, use:
 
 ```bash
 ng test
 ```
+
+### Database and Vector Search Tests
+
+The project includes extensive tests for the DuckDB database and vector search functionality using Jest.
+
+#### Run All Database Tests
+
+```bash
+npm run test:all
+```
+
+#### Run Specific Test Suites
+
+Run only database CRUD tests:
+```bash
+npm run test:db
+```
+
+Run only vector search tests:
+```bash
+npm run test:vector
+```
+
+#### Watch Mode
+
+Run tests in watch mode (automatically re-runs tests when files change):
+```bash
+npm run test:watch
+```
+
+#### Coverage Report
+
+Generate a test coverage report:
+```bash
+npm run test:coverage
+```
+
+The coverage report will be generated in the `coverage/` directory.
+
+### Test Structure
+
+- **`tests/db.test.ts`**: Tests for basic database operations (CRUD operations, embedding storage, deletion)
+- **`tests/vector-search.test.ts`**: Comprehensive tests for vector similarity search functionality, including:
+  - Basic similarity search
+  - Result ordering by similarity
+  - Multiple embeddings per note
+  - Edge cases and error handling
+  - 1536-dimensional embedding validation
+
+### What the Tests Cover
+
+1. **Database Operations**
+   - Creating, reading, updating, and deleting notes
+   - Storing and retrieving embeddings
+   - Handling multiple embeddings per note
+   - Proper timestamp handling
+
+2. **Vector Search Functionality**
+   - Finding similar notes based on vector embeddings
+   - Correct ordering of results by similarity
+   - Respecting search limits
+   - Handling edge cases (empty database, extreme values)
+   - Validating 1536-dimensional embeddings
+
+3. **Data Integrity**
+   - Embedding dimension correctness (1536 dimensions for OpenAI models)
+   - Proper cleanup of embeddings when notes are deleted
+   - Handling multiple ideas per note
 
 ## Running end-to-end tests
 
