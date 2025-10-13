@@ -1,1 +1,57 @@
+mat-dialog-content {
+    background-color: var(--bg-surface);
+    color: var(--text-primary);
+    
+    form {
+        padding: 20px 0;
+    }
+    
+    mat-form-field {
+        width: 100%;
+        
+        .mat-mdc-text-field-wrapper {
+            background-color: var(--bg-elevated);
+        }
+        
+        input {
+            color: var(--text-primary);
+            caret-color: var(--primary-accent);
+        }
+        
+        mat-label {
+            color: var(--text-secondary);
+        }
+        
+        mat-hint {
+            color: var(--text-tertiary);
+        }
+    }
+}
 
+h2[mat-dialog-title] {
+    background-color: var(--bg-elevated);
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-primary);
+}
+
+mat-dialog-actions {
+    background-color: var(--bg-surface);
+    border-top: 1px solid var(--border-primary);
+    
+    button {
+        color: var(--text-primary);
+        
+        &[color="primary"] {
+            background-color: var(--primary-accent);
+            color: white;
+            
+            &:hover {
+                background-color: var(--primary-accent-hover);
+            }
+        }
+        
+        &:hover:not([color="primary"]) {
+            background-color: var(--bg-hover);
+        }
+    }
+}

@@ -2,5 +2,23 @@
     display: flex;
     justify-content: flex-end;
     flex-direction: column;
-    background-color: pink;
+    background-color: var(--bg-elevated);
+    border-bottom: 1px solid var(--border-primary);
+    box-shadow: var(--shadow-sm);
+    
+    button[mat-icon-button] {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        color: var(--text-primary);
+        
+        &:hover {
+            color: var(--primary-accent);
+            background-color: var(--bg-hover);
+        }
+        
+        mat-icon {
+            color: inherit;
+        }
+    }
 }

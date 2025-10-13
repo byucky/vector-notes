@@ -3,6 +3,28 @@
     justify-content: space-between;
     align-items: center;
     padding: 10px;
+    background-color: var(--bg-elevated);
+    border-bottom: 1px solid var(--border-primary);
+    
+    h2 {
+        color: var(--text-primary);
+        font-size: 18px;
+        font-weight: 500;
+        margin: 0;
+    }
+    
+    button {
+        color: var(--text-primary);
+        
+        &:hover {
+            color: var(--primary-accent);
+            background-color: var(--bg-hover);
+        }
+        
+        mat-icon {
+            color: inherit;
+        }
+    }
 }
 
 .notes-navigator-body {
@@ -11,26 +33,32 @@
     padding: 10px;
     overflow-y: auto;
     flex: 1;
+    background-color: var(--bg-elevated);
 }
 
 .notes-navigator-container {
     display: flex;
     flex-direction: column;
     height: 100%;
+    background-color: var(--bg-elevated);
 }
 
 .note-item {
     cursor: pointer;
     border-radius: 4px;
     margin-bottom: 4px;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
     
     &:hover {
-        background-color: rgba(0, 0, 0, 0.04);
+        background-color: var(--bg-hover);
+        border-color: var(--border-primary);
     }
     
     &.selected {
-        background-color: rgba(0, 0, 0, 0.08);
+        background-color: var(--bg-surface);
+        border-color: var(--primary-accent);
+        box-shadow: 0 0 0 1px var(--primary-accent);
     }
 }
 
@@ -42,7 +70,7 @@
 .note-title {
     font-weight: 500;
     font-size: 14px;
-    color: #333;
+    color: var(--text-primary);
     margin-bottom: 4px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -51,18 +79,18 @@
 
 .note-date {
     font-size: 12px;
-    color: #666;
+    color: var(--text-secondary);
 }
 
 .no-notes {
     text-align: center;
     padding: 20px;
-    color: #666;
+    color: var(--text-secondary);
     font-style: italic;
 }
 
 .loading {
     text-align: center;
     padding: 20px;
-    color: #666;
+    color: var(--text-secondary);
 }

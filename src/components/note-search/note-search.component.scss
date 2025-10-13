@@ -2,6 +2,8 @@
     width: 100%;
     max-width: 500px;
     margin: 0 auto;
+    padding: 20px;
+    background-color: var(--bg-elevated);
 }
 
 .search-field {
@@ -10,4 +12,25 @@
 
 .mat-mdc-form-field {
     width: 100%;
+    
+    input {
+        color: var(--text-primary);
+        caret-color: var(--primary-accent);
+    }
+    
+    .mat-mdc-form-field-subscript-wrapper {
+        color: var(--text-tertiary);
+    }
+    
+    button[matSuffix] {
+        color: var(--text-secondary);
+        
+        &:hover {
+            color: var(--primary-accent);
+        }
+        
+        mat-icon {
+            color: inherit;
+        }
+    }
 }
