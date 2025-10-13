@@ -182,3 +182,27 @@ body {
         }
     }
 }
+
+/* Sidenav container styling */
+.mat-drawer-container {
+    background-color: var(--bg-surface);
+    color: var(--text-primary);
+}
+
+.mat-drawer {
+    background-color: var(--bg-elevated);
+    color: var(--text-primary);
+}
+
+.mat-drawer-backdrop {
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+/* Progress spinner styling */
+.mat-mdc-progress-spinner {
+    --mdc-circular-progress-active-indicator-color: var(--primary-accent);
+}
+
+.mat-mdc-progress-spinner circle {
+    stroke: var(--primary-accent) !important;
+}

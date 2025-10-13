@@ -7,8 +7,10 @@
             placeholder="What information are you looking for?"
             (input)="onSearch($event)"
             (keypress)="onKeyPress($event)"
+            [disabled]="isSearching"
         >
         <button 
+            *ngIf="!isSearching"
             matSuffix 
             mat-icon-button 
             (click)="onSearchIconClick()"
@@ -16,5 +18,11 @@
         >
             <mat-icon>search</mat-icon>
         </button>
+        <mat-spinner 
+            *ngIf="isSearching"
+            matSuffix
+            diameter="24"
+            class="search-spinner"
+        ></mat-spinner>
     </mat-form-field>
 </div>

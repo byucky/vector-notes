@@ -1,8 +1,8 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatSidenavModule, MatSidenav } from '@angular/material/sidenav';
 import { Subject, takeUntil } from 'rxjs';
 import { NoteEditorComponent } from '../components/note-editor/note-editor.component';
 import { AppHeaderComponent } from '../components/app-header/app-header.component';
@@ -26,7 +26,10 @@ import { NoteStateService, NoteState } from '../services/note-state.service';
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit, OnDestroy {
+  @ViewChild('sidenav') sidenav!: MatSidenav;
+  
   title = 'Vectored Notes';
+  sidenavOpened = true;
   private destroy$ = new Subject<void>();
   private currentState: NoteState = {
     notes: [],
@@ -52,5 +55,10 @@ export class AppComponent implements OnInit, OnDestroy {
 
   hasSearchResults(): boolean {
     return this.currentState.searchResults.length > 0;
+  }
+
+  toggleSidenav(): void {
+    this.sidenav.toggle();
+    this.sidenavOpened = this.sidenav.opened;
   }
 }

@@ -1,7 +1,7 @@
 <main class="main-container">
-  <app-header />
+  <app-header [sidenavOpened]="sidenavOpened" (toggleSidebar)="toggleSidenav()" />
   <mat-sidenav-container class="notes-container">
-    <mat-sidenav mode="side" opened class="notes-navigator">
+    <mat-sidenav #sidenav mode="side" [opened]="sidenavOpened" class="notes-navigator">
       <notes-navigator />
     </mat-sidenav>
     <mat-sidenav-content class="note-editor">
