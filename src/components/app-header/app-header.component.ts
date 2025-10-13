@@ -25,7 +25,9 @@ export class AppHeaderComponent {
 
     openSettingsDialog() {
         this.dialog.open(SettingsDialogComponent, {
-            width: '250px'
+            width: '700px',
+            maxWidth: '90vw',
+            minHeight: '400px'
         });
     }
 }

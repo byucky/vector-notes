@@ -1,13 +1,18 @@
 mat-dialog-content {
     background-color: var(--bg-surface);
     color: var(--text-primary);
+    min-height: 300px;
+    padding: 30px !important;
     
     form {
         padding: 20px 0;
+        max-width: 600px;
+        margin: 0 auto;
     }
     
     mat-form-field {
         width: 100%;
+        margin-bottom: 20px;
         
         .mat-mdc-text-field-wrapper {
             background-color: var(--bg-elevated);
@@ -16,14 +21,18 @@ mat-dialog-content {
         input {
             color: var(--text-primary);
             caret-color: var(--primary-accent);
+            font-size: 16px;
+            padding: 10px 0;
         }
         
         mat-label {
             color: var(--text-secondary);
+            font-size: 16px;
         }
         
         mat-hint {
             color: var(--text-tertiary);
+            font-size: 13px;
         }
     }
 }
@@ -32,14 +41,21 @@ h2[mat-dialog-title] {
     background-color: var(--bg-elevated);
     color: var(--text-primary);
     border-bottom: 1px solid var(--border-primary);
+    padding: 24px 30px !important;
+    margin: 0 !important;
+    font-size: 24px;
+    font-weight: 500;
 }
 
 mat-dialog-actions {
     background-color: var(--bg-surface);
     border-top: 1px solid var(--border-primary);
+    padding: 16px 30px !important;
     
     button {
         color: var(--text-primary);
+        padding: 8px 24px;
+        font-size: 15px;
         
         &[color="primary"] {
             background-color: var(--primary-accent);
