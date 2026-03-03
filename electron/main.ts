@@ -1,10 +1,10 @@
 // Import necessary modules
 import { ipcMain } from 'electron';
 import { db, Database } from '../src/utilities/db';
-import { AppSettings } from '../src/services/settings.service';
+import type { AppSettings } from '../src/domain/settings';
 import { loadSettings, saveSettings } from '../src/utilities/settings';
 import { processNote, searchSimilarNotes } from '../src/utilities/embedder';
-import { Note } from '../src/components/note-editor/note';
+import { Note } from '../src/domain/note';
 
 
 // Set up IPC handlers

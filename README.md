@@ -1,6 +1,6 @@
 # VectorNotes
 
-This is a simple note-taking app built to leverage vector embeddings for semantic and contextual search. The idea is you use ideas to search across your notes. It's built with Angular and Electron for cross-platform desktop support.
+This is a simple note-taking app built to leverage vector embeddings for semantic and contextual search. The idea is you use ideas to search across your notes. It's built with React (Vite) and Electron for cross-platform desktop support.
 
 It is still work in progress. Eventually I'm planning on having a compiled app for macos and linux desktops.
 
@@ -9,10 +9,10 @@ It is still work in progress. Eventually I'm planning on having a compiled app f
 To start a local development server, run:
 
 ```bash
-ng serve
+npm start
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Once the server is running, open your browser and navigate to the printed local URL (typically `http://localhost:5173/`). The application will automatically reload whenever you modify any of the source files.
 
 ## Launching the Electron App
 
@@ -23,19 +23,12 @@ npm run electron
 ```
 
 This command will:
-1. Build your Angular application (`ng build`)
+1. Build the React renderer (`npm run build`)
 2. Launch the Electron app using the built files
 
 ### Alternative Development Workflow
 
-For development with hot reloading, you can:
-
-1. Start the Angular development server:
-   ```bash
-   npm start
-   ```
-
-2. In a separate terminal, launch Electron (you may need to modify the main process to point to the dev server URL).
+For UI development with hot reloading, run `npm start` and develop in the browser. When you need end-to-end IPC/DB behavior, use `npm run electron`.
 
 ### Troubleshooting
 
@@ -51,43 +44,21 @@ If you encounter issues:
    npm run build
    ```
 
-3. **Verify all dependencies are properly installed**, especially `better-sqlite3` and `sqlite-vss` for the database functionality.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
+3. **Verify DuckDB/VSS works in your environment** (the app uses `@duckdb/node-api` + DuckDB's `vss` extension).
 
 ## Building
 
 To build the project run:
 
 ```bash
-ng build
+npm run build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+This will build the React renderer into the `dist/` directory. The Electron app loads `dist/vector-notes/browser/index.html`.
 
 ## Running Tests
 
-This project includes comprehensive tests for both the Angular components and the database/vector search functionality.
-
-### Angular Unit Tests
-
-To execute Angular unit tests with the [Karma](https://karma-runner.github.io) test runner, use:
-
-```bash
-ng test
-```
+This project includes tests for the DuckDB database and vector search functionality.
 
 ### Database and Vector Search Tests
 
@@ -157,16 +128,6 @@ The coverage report will be generated in the `coverage/` directory.
    - Proper cleanup of embeddings when notes are deleted
    - Handling multiple ideas per note
 
-## Running end-to-end tests
+## Renderer tech
 
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- React + Vite (renderer lives in `renderer/` and outputs to `dist/vector-notes/browser/` for Electron)

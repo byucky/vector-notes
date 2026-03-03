@@ -1,4 +1,4 @@
-import { Note } from "../components/note-editor/note";
+import { Note } from "../domain/note";
 import { embeddedObject, db } from "./db";
 import { NoteEmbeddingDto } from "./dtoUtility";
 import { loadSettings } from "./settings";
@@ -20,9 +20,30 @@ export interface CategorizationResult {
     error?: string;
 }
 
-const openAiClient = new OpenAI({
-    apiKey: loadSettings().openaiApiKey
-});
+let cachedOpenAiClient: OpenAI | null = null;
+let cachedOpenAiClientApiKey: string | null = null;
+
+const getOpenAIApiKey = (): string | null => {
+    const settings = loadSettings();
+    const key = settings?.openaiApiKey;
+    if (typeof key !== 'string') return null;
+    const trimmed = key.trim();
+    return trimmed.length > 0 ? trimmed : null;
+};
+
+const getOpenAiClient = (): OpenAI => {
+    const apiKey = getOpenAIApiKey();
+    if (!apiKey) {
+        throw new Error('OpenAI API key not found');
+    }
+
+    if (!cachedOpenAiClient || cachedOpenAiClientApiKey !== apiKey) {
+        cachedOpenAiClient = new OpenAI({ apiKey });
+        cachedOpenAiClientApiKey = apiKey;
+    }
+
+    return cachedOpenAiClient;
+};
 
 /**
   * Embed Ideas
@@ -33,11 +54,10 @@ const openAiClient = new OpenAI({
   */
 export const processNote = async (note: Note): Promise<void> => {
 
-    const settings = loadSettings();
-    const openaikey = settings.openaiApiKey;
-
+    const openaikey = getOpenAIApiKey();
     if (!openaikey) {
-        throw new Error('OpenAI API key not found');
+        console.warn('Skipping note embedding: OpenAI API key not configured');
+        return;
     }
 
     const noteIdeas = await splitNoteIdeas(note);
@@ -53,6 +73,7 @@ export const processNote = async (note: Note): Promise<void> => {
 }
 
 const splitNoteIdeas = async (note: Note): Promise<string[]> => {
+    const openAiClient = getOpenAiClient();
     const basePrompt = `
     You are a helpful assistant that splits a note into separate ideas.
     The note is titled: ${note.title}
@@ -74,6 +95,7 @@ const splitNoteIdeas = async (note: Note): Promise<string[]> => {
 }
 
 const embedIdeas = async (ideas: string[], noteId: string): Promise<embeddedObject[]> => {
+    const openAiClient = getOpenAiClient();
     const allRequests = await openAiClient.embeddings.create({
         model: 'text-embedding-3-small',
         input: ideas
@@ -101,16 +123,8 @@ export const searchSimilarNotes = async (query: string, limit: number = 5): Prom
     try {
         console.log('Finding similar notes for:', query);
 
-        // Load settings to get OpenAI API key
-        const settings = loadSettings();
-        const openaikey = settings.openaiApiKey;
-
-        if (!openaikey) {
-            throw new Error('OpenAI API key not found');
-        }
-
         // First, embed the search query to get its vector representation
-        const queryEmbedding = await embedQuery(query, openaikey);
+        const queryEmbedding = await embedQuery(query);
         
         // Use the database's vector similarity search
         const similarNotes = await db.searchSimilarNotes(queryEmbedding, limit);
@@ -126,10 +140,14 @@ export const searchSimilarNotes = async (query: string, limit: number = 5): Prom
  * Embed a single query string for similarity search
  * 
  * @param query The search query to embed
- * @param openaikey OpenAI API key
  * @returns Promise<number[]> - Vector embedding of the query
  */
-const embedQuery = async (query: string, openaikey: string): Promise<number[]> => {
+const embedQuery = async (query: string): Promise<number[]> => {
+    const openaikey = getOpenAIApiKey();
+    if (!openaikey) {
+        throw new Error('OpenAI API key not found');
+    }
+
     const response = await fetch('https://api.openai.com/v1/embeddings', {
         method: 'POST',
         headers: {
