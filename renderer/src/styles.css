@@ -1,15 +1,15 @@
 :root {
   color-scheme: light dark;
-  --bg: #0b0c10;
-  --panel: #11131a;
-  --panel2: #0f1117;
-  --border: rgba(255, 255, 255, 0.08);
+  /* Flat, borderless, dark-grey theme with burnt-orange accent */
+  --bg: #0f1115;
+  --panel: #141821;
+  --panel2: #0f131b;
+  --divider: rgba(255, 255, 255, 0.06);
   --text: rgba(255, 255, 255, 0.92);
-  --muted: rgba(255, 255, 255, 0.65);
-  --accent: #7c5cff;
-  --accent2: #2ee59d;
-  --danger: #ff4d6d;
-  --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --muted: rgba(255, 255, 255, 0.62);
+  --accent: #c2410c; /* burnt orange */
+  --accentSoft: rgba(194, 65, 12, 0.18);
+  --danger: #ef4444;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica,
     Arial, "Apple Color Emoji", "Segoe UI Emoji";
 }
@@ -21,14 +21,12 @@ body {
 
 body {
   margin: 0;
-  background: radial-gradient(1200px 600px at 10% 10%, rgba(124, 92, 255, 0.18), transparent 60%),
-    radial-gradient(900px 500px at 80% 20%, rgba(46, 229, 157, 0.12), transparent 55%),
-    var(--bg);
+  background: var(--bg);
   color: var(--text);
 }
 
 .appRoot {
-  min-height: 100%;
+  height: 100vh;
   display: flex;
   flex-direction: column;
 }
@@ -36,8 +34,8 @@ body {
 .contentLayout {
   display: grid;
   grid-template-columns: 340px 1fr;
-  gap: 12px;
-  padding: 12px;
+  gap: 0;
+  padding: 0;
   flex: 1;
   min-height: 0;
 }
@@ -52,16 +50,16 @@ body {
 }
 
 .panel {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: var(--shadow);
+  background: var(--panel);
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .btn {
   appearance: none;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid transparent;
+  background: transparent;
   color: var(--text);
   border-radius: 10px;
   padding: 8px 10px;
@@ -69,33 +67,32 @@ body {
 }
 
 .btn:hover {
-  border-color: rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.06);
 }
 
 .btnPrimary {
-  border-color: rgba(124, 92, 255, 0.45);
-  background: rgba(124, 92, 255, 0.16);
+  border-color: transparent;
+  background: var(--accentSoft);
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .btnPrimary:hover {
-  border-color: rgba(124, 92, 255, 0.7);
-  background: rgba(124, 92, 255, 0.22);
+  background: rgba(194, 65, 12, 0.26);
 }
 
 .input {
   width: 100%;
   padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.18);
   color: var(--text);
   outline: none;
 }
 
 .input:focus {
-  border-color: rgba(124, 92, 255, 0.6);
-  box-shadow: 0 0 0 4px rgba(124, 92, 255, 0.15);
+  border-color: rgba(194, 65, 12, 0.65);
+  box-shadow: 0 0 0 3px rgba(194, 65, 12, 0.18);
 }
 
 .muted {
@@ -107,8 +104,10 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px;
-  margin: 12px 12px 0;
+  padding: 12px 14px;
+  margin: 0;
+  background: var(--panel2);
+  border-bottom: 1px solid var(--divider);
 }
 
 .headerLeft {
@@ -144,6 +143,8 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: var(--panel2);
+  border-right: 1px solid var(--divider);
 }
 
 .sidebarHeader {
@@ -152,7 +153,7 @@ body {
   justify-content: space-between;
   gap: 10px;
   padding: 12px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--divider);
 }
 
 .sidebarTitle {
@@ -177,22 +178,20 @@ body {
 .noteRow {
   width: 100%;
   text-align: left;
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 10px 10px;
-  border: 1px solid var(--border);
-  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid transparent;
+  background: transparent;
   color: var(--text);
   cursor: pointer;
 }
 
 .noteRow:hover {
-  border-color: rgba(255, 255, 255, 0.18);
-  background: rgba(0, 0, 0, 0.24);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .noteRowSelected {
-  border-color: rgba(124, 92, 255, 0.55);
-  background: rgba(124, 92, 255, 0.12);
+  background: var(--accentSoft);
 }
 
 .noteRowTitle {
@@ -214,8 +213,9 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 12px;
+  padding: 14px;
   gap: 10px;
+  background: var(--panel);
 }
 
 .editorTitle {
@@ -240,6 +240,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: var(--panel);
 }
 
 .resultsHeader {
@@ -247,7 +248,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 12px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--divider);
 }
 
 .resultsTitle {
@@ -263,18 +264,18 @@ body {
 }
 
 .resultCard {
-  border: 1px solid var(--border);
-  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.16);
   color: var(--text);
-  border-radius: 14px;
+  border-radius: 12px;
   padding: 12px;
   cursor: pointer;
   text-align: left;
 }
 
 .resultCard:hover {
-  border-color: rgba(255, 255, 255, 0.18);
-  background: rgba(0, 0, 0, 0.24);
+  border-color: rgba(194, 65, 12, 0.35);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .resultIdea {
@@ -319,6 +320,8 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
 }
 
 .modalHeader {
@@ -326,7 +329,8 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 12px;
-  border-bottom: 1px solid var(--border);
+  background: var(--panel2);
+  border-bottom: 1px solid var(--divider);
 }
 
 .modalTitle {
@@ -353,6 +357,7 @@ body {
   justify-content: flex-end;
   gap: 10px;
   padding: 12px;
-  border-top: 1px solid var(--border);
+  background: var(--panel2);
+  border-top: 1px solid var(--divider);
 }
 

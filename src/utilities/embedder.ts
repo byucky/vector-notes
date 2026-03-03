@@ -129,6 +129,8 @@ export const searchSimilarNotes = async (query: string, limit: number = 5): Prom
         // Use the database's vector similarity search
         const similarNotes = await db.searchSimilarNotes(queryEmbedding, limit);
 
+        console.log(similarNotes);
+
         return similarNotes;
     } catch (error) {
         console.error('Error finding similar notes:', error);
